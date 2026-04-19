@@ -144,8 +144,8 @@ export default function SettingsPage() {
 
       {/* Data */}
       <Section title="Data">
-        {dataItems.map(({ icon: Icon, label, danger, onClick }) => (
-          <Row key={label} icon={Icon} label={label} danger={danger} onClick={onClick} />
+        {dataItems.map(({ icon: Icon, label, onClick }) => (
+          <Row key={label} icon={Icon} label={label} onClick={onClick} />
         ))}
       </Section>
 
