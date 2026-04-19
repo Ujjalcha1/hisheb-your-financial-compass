@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
+import * as XLSX from 'xlsx';
 
 const CURRENCIES = [
   { symbol: '₹', label: 'Indian Rupee (₹)' },
@@ -24,7 +26,7 @@ const CURRENCIES = [
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, setUser, setAuthenticated, categories, addCategory, removeCategory, currency, setCurrency, resetAll } = useStore();
-  const [darkMode, setDarkMode] = useState(true);
+  const { isDark, toggle: toggleTheme } = useTheme();
 
   const [editOpen, setEditOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
@@ -74,15 +76,22 @@ export default function SettingsPage() {
   };
 
   const handleExport = () => {
-    const data = JSON.stringify(useStore.getState().transactions, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hisheb-export-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Data exported');
+    const txns = useStore.getState().transactions;
+    const rows = txns.map((t) => ({
+      Date: t.date,
+      Type: t.type,
+      Category: t.category,
+      Amount: t.amount,
+      'Payment Method': t.paymentMethod ?? '',
+      Person: t.person ?? '',
+      Note: t.note,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 30 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+    XLSX.writeFile(wb, `hisheb-export-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success('Exported to Excel');
   };
 
   const handleDeleteAccount = () => {
@@ -138,7 +147,7 @@ export default function SettingsPage() {
         <Row
           icon={Moon}
           label="Dark Mode"
-          right={<Switch checked={darkMode} onCheckedChange={setDarkMode} />}
+          right={<Switch checked={isDark} onCheckedChange={toggleTheme} />}
         />
       </Section>
 
