@@ -56,7 +56,9 @@ export default function Transactions() {
                     <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">{typeIcon[t.type]}</div>
                     <div>
                       <p className="text-sm font-medium">{t.category}</p>
-                      <p className="text-xs text-muted-foreground">{t.note}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t.note}{t.paymentMethod ? ` • ${t.paymentMethod}` : ''}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
