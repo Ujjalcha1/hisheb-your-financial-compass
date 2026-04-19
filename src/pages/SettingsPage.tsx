@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
 import BottomNav from '@/components/BottomNav';
-import { User, Lock, Tag, IndianRupee, Moon, Download, Trash2, LogOut, ChevronRight, Plus, X } from 'lucide-react';
+import { User, Lock, Tag, IndianRupee, Moon, Download, LogOut, ChevronRight, Plus, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -25,14 +24,13 @@ const CURRENCIES = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { user, setUser, setAuthenticated, categories, addCategory, removeCategory, currency, setCurrency, resetAll } = useStore();
+  const { user, setUser, setAuthenticated, categories, addCategory, removeCategory, currency, setCurrency } = useStore();
   const { isDark, toggle: toggleTheme } = useTheme();
 
   const [editOpen, setEditOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
-  const [delOpen, setDelOpen] = useState(false);
 
   // Edit profile state
   const [name, setName] = useState(user?.name ?? '');
@@ -94,12 +92,6 @@ export default function SettingsPage() {
     toast.success('Exported to Excel');
   };
 
-  const handleDeleteAccount = () => {
-    resetAll();
-    toast.success('Account deleted');
-    navigate('/login');
-  };
-
   const accountItems = [
     { icon: User, label: 'Edit Profile', onClick: () => { setName(user?.name ?? ''); setEmail(user?.email ?? ''); setEditOpen(true); } },
     { icon: Lock, label: 'Change Password', onClick: () => setPwdOpen(true) },
@@ -110,7 +102,6 @@ export default function SettingsPage() {
   ];
   const dataItems = [
     { icon: Download, label: 'Export Data', onClick: handleExport },
-    { icon: Trash2, label: 'Delete Account', danger: true, onClick: () => setDelOpen(true) },
   ];
 
   return (
@@ -153,8 +144,8 @@ export default function SettingsPage() {
 
       {/* Data */}
       <Section title="Data">
-        {dataItems.map(({ icon: Icon, label, danger, onClick }) => (
-          <Row key={label} icon={Icon} label={label} danger={danger} onClick={onClick} />
+        {dataItems.map(({ icon: Icon, label, onClick }) => (
+          <Row key={label} icon={Icon} label={label} onClick={onClick} />
         ))}
       </Section>
 
@@ -268,24 +259,6 @@ export default function SettingsPage() {
           </RadioGroup>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Account Confirm */}
-      <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
-        <AlertDialogContent className="rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete account?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently remove your profile and all transactions. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <BottomNav />
     </div>
