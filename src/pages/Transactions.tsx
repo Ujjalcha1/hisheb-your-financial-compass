@@ -61,7 +61,7 @@ export default function Transactions() {
                   </div>
                   <div className="flex items-center gap-2">
                     <p className={cn('text-sm font-semibold', t.type === 'income' ? 'text-income' : t.type === 'expense' ? 'text-expense' : t.type === 'lend' ? 'text-lend' : 'text-borrow')}>
-                      {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                      {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
                     </p>
                     <button onClick={() => removeTransaction(t.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1">
                       <Trash2 className="w-4 h-4 text-destructive" />

@@ -36,11 +36,11 @@ export default function Reports() {
       <div className="px-5 grid grid-cols-2 gap-3 mb-6">
         <div className="glass-card">
           <p className="text-xs text-muted-foreground mb-1">Total Income</p>
-          <p className="text-lg font-bold text-income">${totalIncome.toFixed(2)}</p>
+          <p className="text-lg font-bold text-income">₹{totalIncome.toFixed(2)}</p>
         </div>
         <div className="glass-card">
           <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
-          <p className="text-lg font-bold text-expense">${totalExpense.toFixed(2)}</p>
+          <p className="text-lg font-bold text-expense">₹{totalExpense.toFixed(2)}</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function Reports() {
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                     <span>{d.name}</span>
                   </div>
-                  <span className="text-muted-foreground">${d.value}</span>
+                  <span className="text-muted-foreground">₹{d.value}</span>
                 </div>
               ))}
             </div>
@@ -98,7 +98,7 @@ export default function Reports() {
                   <span className="text-lg font-bold text-muted-foreground">#{i + 1}</span>
                   <span className="text-sm font-medium">{d.name}</span>
                 </div>
-                <span className="text-sm font-semibold text-expense">${d.value.toFixed(2)}</span>
+                <span className="text-sm font-semibold text-expense">₹{d.value.toFixed(2)}</span>
               </div>
             ))}
           </div>

@@ -37,14 +37,14 @@ export default function People() {
                   <div className="text-left">
                     <p className="font-medium text-sm">{name}</p>
                     <div className="flex gap-3 text-xs text-muted-foreground">
-                      {lent > 0 && <span className="text-lend">To receive: ${lent}</span>}
-                      {borrowed > 0 && <span className="text-borrow">To pay: ${borrowed}</span>}
+                      {lent > 0 && <span className="text-lend">To receive: ₹{lent}</span>}
+                      {borrowed > 0 && <span className="text-borrow">To pay: ₹{borrowed}</span>}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn('text-sm font-semibold', net > 0 ? 'text-income' : net < 0 ? 'text-expense' : 'text-muted-foreground')}>
-                    {net > 0 ? '+' : ''}{net !== 0 ? `$${Math.abs(net)}` : 'Settled'}
+                    {net > 0 ? '+' : ''}{net !== 0 ? `₹${Math.abs(net)}` : 'Settled'}
                   </span>
                   {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                 </div>
@@ -57,7 +57,7 @@ export default function People() {
                         {t.type === 'lend' ? <ArrowUpRight className="w-3.5 h-3.5 text-lend" /> : <ArrowDownLeft className="w-3.5 h-3.5 text-borrow" />}
                         <span className="text-muted-foreground">{t.note}</span>
                       </div>
-                      <span className={t.type === 'lend' ? 'text-lend' : 'text-borrow'}>${t.amount}</span>
+                      <span className={t.type === 'lend' ? 'text-lend' : 'text-borrow'}>₹{t.amount}</span>
                     </div>
                   ))}
                 </div>

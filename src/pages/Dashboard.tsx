@@ -51,7 +51,7 @@ export default function Dashboard() {
               <Icon className={`w-4 h-4 ${color}`} />
               <span className="text-xs text-muted-foreground">{label}</span>
             </div>
-            <p className="text-lg font-bold">${value.toFixed(2)}</p>
+            <p className="text-lg font-bold">₹{value.toFixed(2)}</p>
           </div>
         ))}
         <div className="glass-card col-span-2 flex items-center justify-between">
@@ -60,7 +60,7 @@ export default function Dashboard() {
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-xs text-muted-foreground">Remaining Balance</span>
             </div>
-            <p className="text-2xl font-bold text-primary">${balance.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-primary">₹{balance.toFixed(2)}</p>
           </div>
           <button onClick={() => setShowAdd(true)} className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg">
             <Plus className="w-6 h-6 text-primary-foreground" />
@@ -97,7 +97,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-income' : t.type === 'expense' ? 'text-expense' : t.type === 'lend' ? 'text-lend' : 'text-borrow'}`}>
-                {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
               </p>
             </div>
           ))}
