@@ -16,10 +16,16 @@ export interface AppState {
   user: { name: string; email: string } | null;
   transactions: Transaction[];
   isAuthenticated: boolean;
+  categories: string[];
+  currency: string;
   setUser: (user: AppState['user']) => void;
   setAuthenticated: (v: boolean) => void;
   addTransaction: (t: Transaction) => void;
   removeTransaction: (id: string) => void;
+  addCategory: (c: string) => void;
+  removeCategory: (c: string) => void;
+  setCurrency: (c: string) => void;
+  resetAll: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -34,8 +40,14 @@ export const useStore = create<AppState>((set) => ({
     { id: '7', type: 'expense', amount: 60, category: 'Entertainment', note: 'Netflix subscription', date: '2026-04-02' },
   ],
   isAuthenticated: false,
+  categories: ['Food', 'Transport', 'Shopping', 'Entertainment', 'Housing', 'Health', 'Education', 'Other'],
+  currency: '₹',
   setUser: (user) => set({ user }),
   setAuthenticated: (v) => set({ isAuthenticated: v }),
   addTransaction: (t) => set((s) => ({ transactions: [t, ...s.transactions] })),
   removeTransaction: (id) => set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) })),
+  addCategory: (c) => set((s) => ({ categories: s.categories.includes(c) ? s.categories : [...s.categories, c] })),
+  removeCategory: (c) => set((s) => ({ categories: s.categories.filter((x) => x !== c) })),
+  setCurrency: (c) => set({ currency: c }),
+  resetAll: () => set({ user: null, transactions: [], isAuthenticated: false }),
 }));
