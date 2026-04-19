@@ -1,12 +1,23 @@
 import { useState } from 'react';
-import { useStore, TransactionType } from '@/store/useStore';
+import { useStore, TransactionType, PaymentMethod, PAYMENT_METHODS } from '@/store/useStore';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ShoppingBag, Utensils, Car, Film, Home, Briefcase, Gift, HeartPulse, GraduationCap, MoreHorizontal } from 'lucide-react';
+import { ShoppingBag, Utensils, Car, Film, Home, Briefcase, Gift, HeartPulse, GraduationCap, MoreHorizontal, Wallet, Smartphone, CreditCard, Landmark, Banknote } from 'lucide-react';
+
+const paymentIcons: Record<PaymentMethod, React.ElementType> = {
+  Cash: Banknote,
+  UPI: Smartphone,
+  'Credit Card': CreditCard,
+  'Debit Card': CreditCard,
+  'Net Banking': Landmark,
+  Wallet: Wallet,
+  Other: MoreHorizontal,
+};
 
 const categories: Record<TransactionType, { label: string; icon: React.ElementType }[]> = {
   expense: [
@@ -39,6 +50,7 @@ export default function AddTransactionSheet({ open, onOpenChange }: Props) {
   const [note, setNote] = useState('');
   const [person, setPerson] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
 
   const handleSave = () => {
     if (!amount || !category) return;
@@ -50,8 +62,9 @@ export default function AddTransactionSheet({ open, onOpenChange }: Props) {
       note,
       date,
       person: person || undefined,
+      paymentMethod,
     });
-    setAmount(''); setCategory(''); setNote(''); setPerson('');
+    setAmount(''); setCategory(''); setNote(''); setPerson(''); setPaymentMethod('Cash');
     onOpenChange(false);
   };
 
@@ -96,6 +109,28 @@ export default function AddTransactionSheet({ open, onOpenChange }: Props) {
               <Input placeholder="Name" value={person} onChange={(e) => setPerson(e.target.value)} className="bg-secondary border-border/50 h-11 rounded-xl" />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
+              <SelectTrigger className="bg-secondary border-border/50 h-11 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map((m) => {
+                  const Icon = paymentIcons[m];
+                  return (
+                    <SelectItem key={m} value={m}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span>{m}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label>Note</Label>
