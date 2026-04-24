@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+
+@layer base {
+  :root {
+    --background: 240 20% 99%;
+    --foreground: 240 40% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 40% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 40% 10%;
+
+    --primary: 255 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 30% 96%;
+    --secondary-foreground: 240 40% 10%;
+
+    --muted: 240 30% 96%;
+    --muted-foreground: 240 10% 45%;
+
+    --accent: 240 30% 96%;
+    --accent-foreground: 240 40% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 90%;
+    --input: 240 20% 90%;
+    --ring: 255 85% 60%;
+
+    --radius: 1.25rem;
+
+    --surface: 240 20% 97%;
+    --surface-alt: 240 20% 94%;
+    --income: 142 70% 45%;
+    --expense: 0 84% 60%;
+    --lend: 217 91% 60%;
+    --borrow: 38 92% 50%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 40% 10%;
+    --sidebar-primary: 255 85% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 30% 96%;
+    --sidebar-accent-foreground: 240 40% 10%;
+    --sidebar-border: 240 20% 90%;
+    --sidebar-ring: 255 85% 60%;
+  }
+
+  .dark {
+    --background: 240 40% 3%;
+    --foreground: 240 20% 98%;
+
+    --card: 240 40% 6%;
+    --card-foreground: 240 20% 98%;
+
+    --popover: 240 40% 6%;
+    --popover-foreground: 240 20% 98%;
+
+    --primary: 255 85% 70%;
+    --primary-foreground: 240 40% 3%;
+
+    --secondary: 240 30% 10%;
+    --secondary-foreground: 240 20% 98%;
+
+    --muted: 240 30% 10%;
+    --muted-foreground: 240 10% 60%;
+
+    --accent: 240 30% 10%;
+    --accent-foreground: 240 20% 98%;
+
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 30% 15%;
+    --input: 240 30% 15%;
+    --ring: 255 85% 70%;
+
+    --surface: 240 35% 8%;
+    --surface-alt: 240 35% 5%;
+    --income: 142 70% 60%;
+    --expense: 0 84% 70%;
+    --lend: 217 91% 70%;
+    --borrow: 38 92% 60%;
+
+    --sidebar-background: 240 40% 6%;
+    --sidebar-foreground: 240 20% 98%;
+    --sidebar-primary: 255 85% 70%;
+    --sidebar-primary-foreground: 240 40% 3%;
+    --sidebar-accent: 240 30% 10%;
+    --sidebar-accent-foreground: 240 20% 98%;
+    --sidebar-border: 240 30% 15%;
+    --sidebar-ring: 255 85% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-border/40 shadow-lg;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-4;
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(280 80% 60%) 100%);
+  }
+
+  .gradient-surface {
+    background: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-alt)) 100%);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(155 89% 69% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(155 89% 69% / 0.4); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
