@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export default function Register() {
   const router = useRouter();
@@ -86,6 +87,7 @@ export default function Register() {
 
       if (!data.success) throw new Error(data.error);
       
+      toast.success('Account created! You can now log in.');
       router.push('/login');
     } catch (err: any) {
       setError(err.message || 'An error occurred during signup');
