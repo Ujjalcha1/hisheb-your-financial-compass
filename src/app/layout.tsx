@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://hisheb.vercel.app", // Adjust if you have a real domain
+    url: "https://hisheb.ujjal.in",
     title: "Hisheb - Your Financial Compass",
     description: "Track your expenses, manage your budget, and achieve financial clarity.",
     siteName: "Hisheb",
