@@ -4,13 +4,27 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import logo from '@/assets/logo.png';
+import { supabase } from '@/lib/supabase';
 
 export default function Splash() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => router.push('/login'), 2500);
-    return () => clearTimeout(timer);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const timer = setTimeout(() => {
+        if (session) {
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
+      }, 2500);
+      
+      return () => clearTimeout(timer);
+    };
+
+    checkAuth();
   }, [router]);
 
   return (

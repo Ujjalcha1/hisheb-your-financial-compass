@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,19 @@ export default function Register() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialChecking, setInitialChecking] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      } else {
+        setInitialChecking(false);
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const strength = (() => {
     const p = form.password;
@@ -34,6 +47,14 @@ export default function Register() {
 
   const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
   const strengthColors = ['', 'bg-destructive', 'bg-borrow', 'bg-lend', 'bg-primary'];
+
+  if (initialChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const validatePhone = (phone: string) => {
     const indianPhoneRegex = /^[6-9]\d{9}$/;
