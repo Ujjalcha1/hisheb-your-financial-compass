@@ -50,22 +50,22 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            full_name: form.name,
-            phone: form.phone ? (form.phone.startsWith('+91') ? form.phone : `+91${form.phone}`) : null,
-          }
-        }
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          name: form.name,
+          phone: form.phone ? (form.phone.startsWith('+91') ? form.phone : `+91${form.phone}`) : null,
+        }),
       });
 
-      if (signUpError) throw signUpError;
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.error);
       
-      if (data.user) {
-        router.push('/login');
-      }
+      router.push('/login');
     } catch (err: any) {
       setError(err.message || 'An error occurred during signup');
     } finally {

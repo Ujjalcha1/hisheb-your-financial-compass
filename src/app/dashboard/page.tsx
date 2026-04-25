@@ -1,50 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useStore, TransactionType, PaymentMethod } from '@/store/useStore';
 import BottomNav from '@/components/BottomNav';
-import AddTransactionSheet from '@/components/AddTransactionSheet';
+import TransactionSheet from '@/components/TransactionSheet';
 import { TrendingDown, TrendingUp, Wallet, Plus, ArrowUpRight, ArrowDownLeft, HandCoins, Handshake } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-
+import { syncTransactions } from '@/lib/sync';
 import TransactionCharts from '@/components/TransactionCharts';
 
 export default function Dashboard() {
-  const { user, transactions, setTransactions } = useStore();
+  const { user, transactions } = useStore();
   const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
-    const fetchTxns = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
-
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('date', { ascending: false });
-
-      if (error) {
-        toast.error('Failed to sync with cloud');
-        return;
-      }
-
-      if (data) {
-        setTransactions(data.map(t => ({
-          id: t.id,
-          type: t.type,
-          amount: parseFloat(t.amount),
-          category: t.category,
-          note: t.note || '',
-          date: t.date,
-          person: t.person || undefined,
-          paymentMethod: t.payment_method as PaymentMethod,
-        })));
-      }
-    };
-
-    fetchTxns();
-  }, [setTransactions]);
+    syncTransactions();
+  }, []);
 
   const today = new Date().toISOString().split('T')[0];
   const month = today.slice(0, 7);
@@ -90,20 +61,24 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="px-6 grid grid-cols-2 gap-4 mb-8">
-        {[
-          { label: "Today's Expense", value: todayExpense, icon: TrendingDown, color: 'text-expense', bg: 'bg-expense/5' },
-          { label: 'Monthly Expense', value: monthExpense, icon: TrendingDown, color: 'text-expense', bg: 'bg-expense/5' },
-        ].map(({ label, value, icon: Icon, color, bg }, i) => (
-          <div key={label} className={`glass-card p-5 border-none shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-[${i*100}ms]`}>
-            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-3`}>
-              <Icon className={`w-4 h-4 ${color}`} />
+        {/* Summary Cards */}
+        <div className="px-6 grid grid-cols-2 gap-4 mb-8">
+          {[
+            { label: "Today's Expense", value: todayExpense, icon: TrendingDown, color: 'text-expense', bg: 'bg-expense/5' },
+            { label: 'Monthly Expense', value: monthExpense, icon: TrendingDown, color: 'text-expense', bg: 'bg-expense/5' },
+          ].map(({ label, value, icon: Icon, color, bg }, i) => (
+            <div 
+              key={label} 
+              className="glass-card p-5 border-none shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700"
+              style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}
+            >
+              <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-3`}>
+                <Icon className={`w-4 h-4 ${color}`} />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
+              <p className="text-xl font-bold tracking-tight">₹{value.toFixed(0)}</p>
             </div>
-            <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
-            <p className="text-xl font-bold tracking-tight">₹{value.toFixed(0)}</p>
-          </div>
-        ))}
+          ))}
         
         <div className="glass-card col-span-2 p-6 border-none shadow-md bg-gradient-to-br from-card to-secondary/30 flex items-center justify-between relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
@@ -146,7 +121,7 @@ export default function Dashboard() {
       <div className="px-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Recent Activity</h2>
-          <button className="text-[10px] font-bold text-primary uppercase tracking-widest">See All</button>
+          <Link href="/transactions" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline transition-all">See All</Link>
         </div>
         <div className="space-y-3">
           {recent.length > 0 ? recent.map((t, i) => (
@@ -175,7 +150,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AddTransactionSheet open={showAdd} onOpenChange={setShowAdd} />
+      <TransactionSheet open={showAdd} onOpenChange={setShowAdd} />
       <BottomNav />
     </div>
   );

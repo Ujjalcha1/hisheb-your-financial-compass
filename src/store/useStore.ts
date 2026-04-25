@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type TransactionType = 'expense' | 'income' | 'lend' | 'borrow';
 export type PaymentMethod = 'Cash' | 'UPI' | 'Credit Card' | 'Debit Card' | 'Net Banking' | 'Wallet' | 'Other';
@@ -21,11 +21,13 @@ export interface AppState {
   user: { name: string; email: string } | null;
   transactions: Transaction[];
   isAuthenticated: boolean;
+  isLoading: boolean;
   categories: string[];
   customCategories: string[];
   currency: string;
   setUser: (user: AppState['user']) => void;
   setAuthenticated: (v: boolean) => void;
+  setLoading: (v: boolean) => void;
   addTransaction: (t: Transaction) => void;
   setTransactions: (t: Transaction[]) => void;
   removeTransaction: (id: string) => void;
@@ -41,11 +43,13 @@ export const useStore = create<AppState>()(
       user: null,
       transactions: [],
       isAuthenticated: false,
+      isLoading: false,
       categories: ['Food', 'Transport', 'Shopping', 'Entertainment', 'Housing', 'Health', 'Education', 'Other'],
       customCategories: [],
       currency: '₹',
       setUser: (user) => set({ user }),
       setAuthenticated: (v) => set({ isAuthenticated: v }),
+      setLoading: (v) => set({ isLoading: v }),
       addTransaction: (t) => set((s) => ({ transactions: [t, ...s.transactions] })),
       setTransactions: (transactions) => set({ transactions }),
       removeTransaction: (id) => set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) })),
@@ -56,6 +60,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'hisheb-storage',
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : sessionStorage)),
     }
   )
 );

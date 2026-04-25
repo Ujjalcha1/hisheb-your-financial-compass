@@ -3,32 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import BottomNav from '@/components/BottomNav';
-import { User, Lock, Tag, IndianRupee, Moon, Download, LogOut, ChevronRight, Plus, X } from 'lucide-react';
+import { Lock, Tag, Moon, Download, LogOut, ChevronRight, Plus, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
 import * as XLSX from 'xlsx';
-
-const CURRENCIES = [
-  { symbol: '₹', label: 'Indian Rupee (₹)' },
-  { symbol: '$', label: 'US Dollar ($)' },
-  { symbol: '€', label: 'Euro (€)' },
-  { symbol: '£', label: 'British Pound (£)' },
-  { symbol: '৳', label: 'Bangladeshi Taka (৳)' },
-];
-
 import { supabase } from '@/lib/supabase';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, setUser, setAuthenticated, customCategories, categories: defaultCategories, addCategory, removeCategory, currency, setCurrency, resetAll } = useStore();
+  const { user, customCategories, categories: defaultCategories, addCategory, removeCategory, resetAll } = useStore();
   const { isDark, toggle: toggleTheme } = useTheme();
 
   const categories = [...defaultCategories, ...customCategories];
@@ -43,38 +33,40 @@ export default function SettingsPage() {
     }
   };
 
-  const [editOpen, setEditOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [curOpen, setCurOpen] = useState(false);
-
-  // Edit profile state
-  const [name, setName] = useState(user?.name ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
+  const [loading, setLoading] = useState(false);
 
   // Password state
-  const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
 
   // Category state
   const [newCat, setNewCat] = useState('');
 
-  const handleSaveProfile = () => {
-    if (!name.trim() || !email.trim()) return;
-    setUser({ name: name.trim(), email: email.trim() });
-    toast.success('Profile updated');
-    setEditOpen(false);
-  };
-
-  const handleChangePassword = () => {
-    if (!currentPwd || !newPwd || newPwd !== confirmPwd) {
+  const handleChangePassword = async () => {
+    if (!newPwd || newPwd !== confirmPwd) {
       toast.error('Passwords do not match');
       return;
     }
-    toast.success('Password changed');
-    setCurrentPwd(''); setNewPwd(''); setConfirmPwd('');
-    setPwdOpen(false);
+    if (newPwd.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPwd });
+      if (error) throw error;
+      
+      toast.success('Password updated successfully');
+      setNewPwd(''); setConfirmPwd('');
+      setPwdOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Error updating password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddCat = () => {
@@ -86,30 +78,51 @@ export default function SettingsPage() {
 
   const handleExport = () => {
     const txns = useStore.getState().transactions;
+    
+    // Detailed rows with Debit/Credit
     const rows = txns.map((t) => ({
       Date: t.date,
-      Type: t.type,
       Category: t.category,
-      Amount: t.amount,
+      Debit: (t.type === 'expense' || t.type === 'lend') ? t.amount : 0,
+      Credit: (t.type === 'income' || t.type === 'borrow') ? t.amount : 0,
       'Payment Method': t.paymentMethod ?? '',
-      Person: t.person ?? '',
       Note: t.note,
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 30 }];
+
+    // Monthly summary and savings
+    const summaryData = Object.entries(
+      txns.reduce((acc, t) => {
+        const month = t.date.slice(0, 7); // YYYY-MM
+        if (!acc[month]) acc[month] = { Credit: 0, Debit: 0 };
+        if (t.type === 'income' || t.type === 'borrow') acc[month].Credit += t.amount;
+        else acc[month].Debit += t.amount;
+        return acc;
+      }, {} as any)
+    ).map(([month, totals]: [string, any]) => ({
+      Month: month,
+      'Total Credit': totals.Credit,
+      'Total Debit': totals.Debit,
+      Savings: totals.Credit - totals.Debit
+    })).sort((a, b) => b.Month.localeCompare(a.Month));
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
-    XLSX.writeFile(wb, `hisheb-export-${new Date().toISOString().slice(0, 10)}.xlsx`);
-    toast.success('Exported to Excel');
+    
+    // Sheet 1: Monthly Summary (Showing first as requested)
+    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+    wsSummary['!cols'] = [{ wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Monthly Summary');
+
+    // Sheet 2: Transactions (Detailed view)
+    const wsTxns = XLSX.utils.json_to_sheet(rows);
+    wsTxns['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(wb, wsTxns, 'Detailed Transactions');
+
+    XLSX.writeFile(wb, `hisheb-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success('Exported with Monthly Summary');
   };
 
-  const accountItems = [
-    { icon: User, label: 'Edit Profile', onClick: () => { setName(user?.name ?? ''); setEmail(user?.email ?? ''); setEditOpen(true); } },
-    { icon: Lock, label: 'Change Password', onClick: () => setPwdOpen(true) },
-  ];
   const prefItems = [
     { icon: Tag, label: 'Manage Categories', onClick: () => setCatOpen(true) },
-    { icon: IndianRupee, label: 'Currency', value: currency, onClick: () => setCurOpen(true) },
   ];
   const dataItems = [
     { icon: Download, label: 'Export Data', onClick: handleExport },
@@ -136,15 +149,13 @@ export default function SettingsPage() {
 
       {/* Account */}
       <Section title="Account">
-        {accountItems.map(({ icon: Icon, label, onClick }) => (
-          <Row key={label} icon={Icon} label={label} onClick={onClick} />
-        ))}
+        <Row icon={Lock} label="Change Password" onClick={() => setPwdOpen(true)} />
       </Section>
 
       {/* Preferences */}
       <Section title="Preferences">
-        {prefItems.map(({ icon: Icon, label, value, onClick }) => (
-          <Row key={label} icon={Icon} label={label} value={value} onClick={onClick} />
+        {prefItems.map(({ icon: Icon, label, onClick }) => (
+          <Row key={label} icon={Icon} label={label} onClick={onClick} />
         ))}
         <Row
           icon={Moon}
@@ -168,41 +179,14 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      {/* Edit Profile Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>Update your account details</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label>Full Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} className="h-11 rounded-xl" />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 rounded-xl" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveProfile} className="gradient-primary">Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Change Password Dialog */}
       <Dialog open={pwdOpen} onOpenChange={setPwdOpen}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>Enter your new password below</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label>Current Password</Label>
-              <Input type="password" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} className="h-11 rounded-xl" />
-            </div>
             <div className="space-y-2">
               <Label>New Password</Label>
               <Input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="h-11 rounded-xl" />
@@ -214,7 +198,9 @@ export default function SettingsPage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPwdOpen(false)}>Cancel</Button>
-            <Button onClick={handleChangePassword} className="gradient-primary">Update</Button>
+            <Button onClick={handleChangePassword} disabled={loading} className="gradient-primary">
+              {loading ? 'Updating...' : 'Update Password'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -251,23 +237,6 @@ export default function SettingsPage() {
               {categories.length === 0 && <p className="text-sm text-muted-foreground">No categories yet</p>}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Currency Dialog */}
-      <Dialog open={curOpen} onOpenChange={setCurOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Select Currency</DialogTitle>
-          </DialogHeader>
-          <RadioGroup value={currency} onValueChange={(v) => { setCurrency(v); toast.success('Currency updated'); setCurOpen(false); }}>
-            {CURRENCIES.map((c) => (
-              <label key={c.symbol} className="flex items-center justify-between px-3 py-3 rounded-xl bg-secondary/50 hover:bg-secondary cursor-pointer">
-                <span className="text-sm">{c.label}</span>
-                <RadioGroupItem value={c.symbol} />
-              </label>
-            ))}
-          </RadioGroup>
         </DialogContent>
       </Dialog>
 
